@@ -1,6 +1,6 @@
 'use client';
 
-import { Message, StudySession, StudyStats, Course } from '@/types/chat';
+import { Message, StudySession, StudyStats } from '@/types/chat';
 
 export interface ExportData {
   conversations: {
@@ -43,10 +43,10 @@ const formatDuration = (seconds: number): string => {
 export const getStudySessions = (): StudySession[] => {
   try {
     const sessions = JSON.parse(localStorage.getItem('universityChatStudySessions') || '[]');
-    return sessions.map((session: any) => ({
+    return sessions.map((session: Record<string, unknown>) => ({
       ...session,
-      startTime: new Date(session.startTime),
-      endTime: session.endTime ? new Date(session.endTime) : undefined,
+      startTime: new Date(session.startTime as string),
+      endTime: session.endTime ? new Date(session.endTime as string) : undefined,
     }));
   } catch (error) {
     console.warn('Could not load study sessions:', error);
@@ -64,9 +64,9 @@ export const getAllChatSessions = (): Message[] => {
       try {
         const session = JSON.parse(localStorage.getItem(key) || '{}');
         if (session.messages) {
-          const messages = session.messages.map((msg: any) => ({
+          const messages = session.messages.map((msg: Record<string, unknown>) => ({
             ...msg,
-            timestamp: new Date(msg.timestamp)
+            timestamp: new Date(msg.timestamp as string)
           }));
           allMessages.push(...messages);
         }

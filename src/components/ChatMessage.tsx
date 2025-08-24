@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { CourseBadge } from './CourseSelector';
 import { YouTubePreview } from './YouTubePreview';
 import { extractYouTubeUrls, getYouTubeVideoInfo } from '@/lib/youtubeUtils';
+import Image from 'next/image';
 
 interface ChatMessageProps {
   message: Message;
@@ -115,9 +116,11 @@ export function ChatMessage({ message }: ChatMessageProps) {
                     <div className="flex items-center space-x-3">
                       {isImageFile(attachment.type) && attachment.base64 ? (
                         <div className="relative">
-                          <img
+                          <Image
                             src={attachment.base64}
                             alt={attachment.name}
+                            width={48}
+                            height={48}
                             className="w-12 h-12 object-cover rounded border"
                           />
                         </div>

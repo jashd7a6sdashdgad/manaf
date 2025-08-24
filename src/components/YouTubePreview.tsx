@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Play, ExternalLink } from 'lucide-react';
 import { YouTubeVideoInfo } from '@/lib/youtubeUtils';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface YouTubePreviewProps {
   videoInfo: YouTubeVideoInfo;
@@ -41,9 +42,11 @@ export function YouTubePreview({ videoInfo, className }: YouTubePreviewProps) {
       {/* Thumbnail Container */}
       <div className="relative aspect-video overflow-hidden">
         {!imageError ? (
-          <img
+          <Image
             src={videoInfo.thumbnailUrl}
             alt="YouTube video thumbnail"
+            width={320}
+            height={180}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={handleImageError}
           />

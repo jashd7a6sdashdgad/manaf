@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Paperclip, FileText, Image as ImageIcon, FileUp, X } from 'lucide-react';
 import { FileAttachment } from '@/types/chat';
+import Image from 'next/image';
 
 interface FileUploadProps {
   attachments: FileAttachment[];
@@ -171,9 +172,11 @@ export function FileUpload({ attachments, onAddAttachment, onRemoveAttachment, d
                   <div className="flex items-center space-x-3">
                     {isImageFile(attachment.type) && attachment.base64 ? (
                       <div className="relative">
-                        <img
+                        <Image
                           src={attachment.base64}
                           alt={attachment.name}
+                          width={48}
+                          height={48}
                           className="w-12 h-12 object-cover rounded border"
                         />
                       </div>

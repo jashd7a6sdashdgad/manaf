@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Timer, Play, Pause, Square, BarChart3, X, Clock, Target, TrendingUp } from 'lucide-react';
+import { Timer, Play, X, Clock, Target, TrendingUp } from 'lucide-react';
 import { StudySession, StudyStats, Course } from '@/types/chat';
 import { CourseBadge } from './CourseSelector';
-import { cn } from '@/lib/utils';
 
 interface StudyTrackerProps {
   isOpen: boolean;
@@ -37,10 +36,10 @@ export function StudyTracker({ isOpen, onClose, currentCourse }: StudyTrackerPro
   useEffect(() => {
     try {
       const sessions = JSON.parse(localStorage.getItem('universityChatStudySessions') || '[]');
-      const parsedSessions = sessions.map((session: any) => ({
+      const parsedSessions = sessions.map((session: Record<string, unknown>) => ({
         ...session,
-        startTime: new Date(session.startTime),
-        endTime: session.endTime ? new Date(session.endTime) : undefined,
+        startTime: new Date(session.startTime as string),
+        endTime: session.endTime ? new Date(session.endTime as string) : undefined,
       }));
       setStudySessions(parsedSessions);
     } catch (error) {
