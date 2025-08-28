@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Moon, Sun, Trash2, GraduationCap, MessageCircle, Timer, Download, Youtube } from 'lucide-react';
+import { Moon, Sun, Trash2, GraduationCap, MessageCircle, Timer, Download, Youtube, Brain } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { StudyTracker } from './StudyTracker';
 import { ExportData } from './ExportData';
@@ -24,6 +24,10 @@ export function ChatHeader({ theme, onToggleTheme, onClearChat, messageCount, me
     if (onSendMessage) {
       onSendMessage("Here are some test YouTube videos:\n\nhttps://www.youtube.com/watch?v=dQw4w9WgXcQ\n\nhttps://youtu.be/oHg5SJYRHA0\n\nhttps://www.youtube.com/watch?v=9bZkp7q19f0");
     }
+  };
+
+  const handleIQTest = () => {
+    window.open('https://iqtestfree.io/', '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -70,6 +74,16 @@ export function ChatHeader({ theme, onToggleTheme, onClearChat, messageCount, me
             whileTap={{ scale: 0.95 }}
           >
             <Youtube size={18} />
+          </motion.button>
+
+          <motion.button
+            onClick={handleIQTest}
+            className="p-2 rounded-lg hover:bg-purple-100 hover:text-purple-600 dark:hover:bg-purple-900/20 dark:hover:text-purple-400 transition-colors"
+            title="Take IQ Test"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Brain size={18} />
           </motion.button>
 
           <motion.button
