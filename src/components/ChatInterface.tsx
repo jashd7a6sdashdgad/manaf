@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { useChat } from '@/hooks/useChat';
 import { ChatHeader } from './ChatHeader';
@@ -10,6 +11,7 @@ import { motion } from 'framer-motion';
 export function ChatInterface() {
   const { theme, toggleTheme } = useTheme();
   const { messages, isLoading, sendMessage, clearChat } = useChat();
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 transition-colors duration-300">
@@ -21,6 +23,8 @@ export function ChatInterface() {
           messageCount={messages.length}
           messages={messages}
           onSendMessage={sendMessage}
+          isVoiceEnabled={isVoiceEnabled}
+          onVoiceToggle={setIsVoiceEnabled}
         />
         
         <motion.div 
@@ -31,7 +35,7 @@ export function ChatInterface() {
         >
           <div className="flex-1 overflow-hidden relative">
             <div className="absolute inset-0 glass rounded-xl mb-4">
-              <ChatMessages messages={messages} isLoading={isLoading} />
+              <ChatMessages messages={messages} isLoading={isLoading} isVoiceEnabled={isVoiceEnabled} />
             </div>
           </div>
           

@@ -1,16 +1,19 @@
 'use client';
 
 import { Message } from '@/types/chat';
-import { User, Bot, FileText, Image as ImageIcon, FileUp } from 'lucide-react';
+import { User, Bot, FileText, Image as ImageIcon, FileUp, Volume2, VolumeX, Play, Pause } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { CourseBadge } from './CourseSelector';
 import { YouTubePreview } from './YouTubePreview';
 import { extractYouTubeUrls, getYouTubeVideoInfo } from '@/lib/youtubeUtils';
 import Image from 'next/image';
+import { useTTS } from '@/lib/ttsUtils';
+import { useState, useEffect } from 'react';
 
 interface ChatMessageProps {
   message: Message;
+  isVoiceEnabled?: boolean;
 }
 
 const formatFileSize = (bytes: number): string => {
@@ -31,16 +34,71 @@ const isImageFile = (type: string): boolean => {
   return type.startsWith('image/');
 };
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, isVoiceEnabled = false }: ChatMessageProps) {
   const isUser = message.sender === 'user';
   const formattedTime = message.timestamp.toLocaleTimeString([], { 
     hour: '2-digit', 
     minute: '2-digit' 
   });
 
+  // Voice controls for bot messages
+  const { speak, stop, pause, resume, isSpeaking, isPaused, isSupported } = useTTS();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPausedState, setIsPausedState] = useState(false);
+
   // Extract YouTube URLs from message content
   const youtubeUrls = extractYouTubeUrls(message.content);
   const youtubeVideos = youtubeUrls.map(url => getYouTubeVideoInfo(url)).filter(Boolean);
+
+  // Voice control functions
+  const handlePlayVoice = async () => {
+    if (!isSupported() || !message.content) return;
+    
+    try {
+      setIsPlaying(true);
+      setIsPausedState(false);
+      await speak(message.content);
+    } catch (error) {
+      console.error('Error playing voice:', error);
+    } finally {
+      setIsPlaying(false);
+      setIsPausedState(false);
+    }
+  };
+
+  const handlePauseVoice = () => {
+    pause();
+    setIsPausedState(true);
+  };
+
+  const handleResumeVoice = () => {
+    resume();
+    setIsPausedState(false);
+  };
+
+  const handleStopVoice = () => {
+    stop();
+    setIsPlaying(false);
+    setIsPausedState(false);
+  };
+
+  // Auto-play voice if enabled and this is a bot message
+  useEffect(() => {
+    if (isVoiceEnabled && !isUser && message.content && !isPlaying) {
+      handlePlayVoice();
+    }
+  }, [isVoiceEnabled, message.id]);
+
+  // Update playing state based on TTS status
+  useEffect(() => {
+    const checkStatus = () => {
+      setIsPlaying(isSpeaking());
+      setIsPausedState(isPaused());
+    };
+
+    const interval = setInterval(checkStatus, 100);
+    return () => clearInterval(interval);
+  }, [isSpeaking, isPaused]);
 
   return (
     <motion.div
@@ -83,9 +141,61 @@ export function ChatMessage({ message }: ChatMessageProps) {
             </div>
           )}
           
-          <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-            {message.content}
-          </p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words flex-1">
+              {message.content}
+            </p>
+            
+            {/* Voice controls for bot messages */}
+            {!isUser && isSupported() && (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {isPlaying ? (
+                  <>
+                    {isPausedState ? (
+                      <motion.button
+                        onClick={handleResumeVoice}
+                        className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                        title="Resume voice"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Play size={14} />
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        onClick={handlePauseVoice}
+                        className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                        title="Pause voice"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Pause size={14} />
+                      </motion.button>
+                    )}
+                    <motion.button
+                      onClick={handleStopVoice}
+                      className="p-1.5 rounded-lg hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      title="Stop voice"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <VolumeX size={14} />
+                    </motion.button>
+                  </>
+                ) : (
+                  <motion.button
+                    onClick={handlePlayVoice}
+                    className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
+                    title="Play voice"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Volume2 size={14} />
+                  </motion.button>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* YouTube Previews */}
           {youtubeVideos.length > 0 && (

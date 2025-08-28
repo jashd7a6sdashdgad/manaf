@@ -10,9 +10,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface ChatMessagesProps {
   messages: Message[];
   isLoading: boolean;
+  isVoiceEnabled?: boolean;
 }
 
-export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
+export function ChatMessages({ messages, isLoading, isVoiceEnabled = false }: ChatMessagesProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -45,7 +46,7 @@ export function ChatMessages({ messages, isLoading }: ChatMessagesProps) {
                 damping: 30
               }}
             >
-              <ChatMessage message={message} />
+              <ChatMessage message={message} isVoiceEnabled={isVoiceEnabled} />
             </motion.div>
           ))}
         </AnimatePresence>

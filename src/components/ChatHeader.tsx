@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Moon, Sun, Trash2, GraduationCap, MessageCircle, Timer, Download, Youtube, Brain } from 'lucide-react';
+import { Moon, Sun, Trash2, GraduationCap, MessageCircle, Timer, Download, Youtube, Brain, Volume2, VolumeX } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { StudyTracker } from './StudyTracker';
 import { ExportData } from './ExportData';
 import { Message } from '@/types/chat';
+import { useTTS } from '@/lib/ttsUtils';
+import { cn } from '@/lib/utils';
 
 interface ChatHeaderProps {
   theme: 'light' | 'dark';
@@ -14,11 +16,14 @@ interface ChatHeaderProps {
   messageCount: number;
   messages: Message[];
   onSendMessage?: (content: string) => void;
+  isVoiceEnabled: boolean;
+  onVoiceToggle: (enabled: boolean) => void;
 }
 
-export function ChatHeader({ theme, onToggleTheme, onClearChat, messageCount, messages, onSendMessage }: ChatHeaderProps) {
+export function ChatHeader({ theme, onToggleTheme, onClearChat, messageCount, messages, onSendMessage, isVoiceEnabled, onVoiceToggle }: ChatHeaderProps) {
   const [isStudyTrackerOpen, setIsStudyTrackerOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const { isSupported } = useTTS();
 
   const handleYouTubeTest = () => {
     if (onSendMessage) {
@@ -28,6 +33,10 @@ export function ChatHeader({ theme, onToggleTheme, onClearChat, messageCount, me
 
   const handleIQTest = () => {
     window.open('https://iqtestfree.io/', '_blank', 'noopener,noreferrer');
+  };
+
+  const toggleVoice = () => {
+    onVoiceToggle(!isVoiceEnabled);
   };
 
   return (
@@ -85,6 +94,23 @@ export function ChatHeader({ theme, onToggleTheme, onClearChat, messageCount, me
           >
             <Brain size={18} />
           </motion.button>
+
+          {isSupported() && (
+            <motion.button
+              onClick={toggleVoice}
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                isVoiceEnabled
+                  ? "bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+                  : "hover:bg-accent hover:text-accent-foreground"
+              )}
+              title={isVoiceEnabled ? "Voice Response Enabled" : "Enable Voice Response"}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {isVoiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            </motion.button>
+          )}
 
           <motion.button
             onClick={() => setIsStudyTrackerOpen(true)}
