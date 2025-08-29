@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 interface TTSOptions {
   voice?: string;
   rate?: number;
@@ -19,6 +21,16 @@ class TTSUtils {
   };
 
   constructor() {
+    // Don't initialize during SSR
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
+    // Initialize after component mounts
+    this.initializeTTS();
+  }
+
+  public initializeTTS() {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       this.synthesis = window.speechSynthesis;
       this.isEnabled = true;
@@ -26,16 +38,25 @@ class TTSUtils {
   }
 
   isSupported(): boolean {
+    // During SSR, always return false to prevent hydration mismatch
+    if (typeof window === 'undefined') {
+      return false;
+    }
     return this.isEnabled && this.synthesis !== null;
   }
 
   getVoices(): SpeechSynthesisVoice[] {
-    if (!this.synthesis) return [];
+    if (typeof window === 'undefined' || !this.synthesis) return [];
     return this.synthesis.getVoices();
   }
 
   speak(text: string, options: TTSOptions = {}): Promise<void> {
     return new Promise((resolve, reject) => {
+      if (typeof window === 'undefined') {
+        reject(new Error('Speech synthesis not available during SSR'));
+        return;
+      }
+      
       if (!this.synthesis || !this.isEnabled) {
         reject(new Error('Speech synthesis not supported'));
         return;
@@ -78,6 +99,7 @@ class TTSUtils {
   }
 
   stop(): void {
+    if (typeof window === 'undefined') return;
     if (this.synthesis && this.synthesis.speaking) {
       this.synthesis.cancel();
       this.currentUtterance = null;
@@ -85,22 +107,26 @@ class TTSUtils {
   }
 
   pause(): void {
+    if (typeof window === 'undefined') return;
     if (this.synthesis && this.synthesis.speaking) {
       this.synthesis.pause();
     }
   }
 
   resume(): void {
+    if (typeof window === 'undefined') return;
     if (this.synthesis && this.synthesis.paused) {
       this.synthesis.resume();
     }
   }
 
   isSpeaking(): boolean {
+    if (typeof window === 'undefined') return false;
     return this.synthesis ? this.synthesis.speaking : false;
   }
 
   isPaused(): boolean {
+    if (typeof window === 'undefined') return false;
     return this.synthesis ? this.synthesis.paused : false;
   }
 }
@@ -110,6 +136,21 @@ export const ttsUtils = new TTSUtils();
 
 // Hook for managing TTS state
 export function useTTS() {
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    // Initialize TTS after component mounts
+    if (typeof window !== 'undefined' && !isInitialized) {
+      // Small delay to ensure component is fully mounted
+      const timer = setTimeout(() => {
+        ttsUtils.initializeTTS();
+        setIsInitialized(true);
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialized]);
+
   const speak = (text: string, options?: TTSOptions) => ttsUtils.speak(text, options);
   const stop = () => ttsUtils.stop();
   const pause = () => ttsUtils.pause();

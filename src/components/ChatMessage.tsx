@@ -45,6 +45,12 @@ export function ChatMessage({ message, isVoiceEnabled = false }: ChatMessageProp
   const { speak, stop, pause, resume, isSpeaking, isPaused, isSupported } = useTTS();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPausedState, setIsPausedState] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Extract YouTube URLs from message content
   const youtubeUrls = extractYouTubeUrls(message.content);
@@ -84,13 +90,15 @@ export function ChatMessage({ message, isVoiceEnabled = false }: ChatMessageProp
 
   // Auto-play voice if enabled and this is a bot message
   useEffect(() => {
-    if (isVoiceEnabled && !isUser && message.content && !isPlaying) {
+    if (isClient && isVoiceEnabled && !isUser && message.content && !isPlaying) {
       handlePlayVoice();
     }
-  }, [isVoiceEnabled, message.id]);
+  }, [isClient, isVoiceEnabled, message.id]);
 
   // Update playing state based on TTS status
   useEffect(() => {
+    if (!isClient) return;
+    
     const checkStatus = () => {
       setIsPlaying(isSpeaking());
       setIsPausedState(isPaused());
@@ -98,7 +106,7 @@ export function ChatMessage({ message, isVoiceEnabled = false }: ChatMessageProp
 
     const interval = setInterval(checkStatus, 100);
     return () => clearInterval(interval);
-  }, [isSpeaking, isPaused]);
+  }, [isClient, isSpeaking, isPaused]);
 
   return (
     <motion.div
@@ -147,7 +155,7 @@ export function ChatMessage({ message, isVoiceEnabled = false }: ChatMessageProp
             </p>
             
             {/* Voice controls for bot messages */}
-            {!isUser && isSupported() && (
+            {!isUser && isClient && isSupported() && (
               <div className="flex items-center gap-1 flex-shrink-0">
                 {isPlaying ? (
                   <>

@@ -1,20 +1,24 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Mic, MicOff } from 'lucide-react';
+import { Send, Mic, MicOff, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { FileUpload } from './FileUpload';
 import { CourseSelector } from './CourseSelector';
 import { FileAttachment, Course } from '@/types/chat';
+import { generateSmartQuestions } from '@/lib/smartQuestions';
+
+import { Message } from '@/types/chat';
 
 interface ChatInputProps {
   onSendMessage: (message: string, attachments?: FileAttachment[], course?: Course) => void;
   isLoading: boolean;
+  messages: Message[];
 }
 
 
-export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
+export function ChatInput({ onSendMessage, isLoading, messages }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
@@ -100,6 +104,17 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
     }
   };
 
+  const handleSmartQuestion = () => {
+    const questions = generateSmartQuestions(messages, 1);
+    const question = questions[0];
+    if (question) {
+      setMessage(question);
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
+    }
+  };
+
 
   return (
     <motion.div
@@ -140,6 +155,18 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
           />
           
           <div className="absolute right-2 top-2 flex items-center gap-1">
+            <motion.button
+              type="button"
+              onClick={handleSmartQuestion}
+              className="p-2 rounded-lg hover:bg-yellow-100 hover:text-yellow-600 dark:hover:bg-yellow-900/20 dark:hover:text-yellow-400 transition-colors"
+              disabled={isLoading}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              title="Get a smart question"
+            >
+              <Lightbulb size={16} />
+            </motion.button>
+            
             {recognitionRef.current && (
               <motion.button
                 type="button"

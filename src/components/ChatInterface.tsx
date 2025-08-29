@@ -40,7 +40,7 @@ export function ChatInterface() {
           </div>
           
           <div className="pb-4">
-            <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
+            <ChatInput onSendMessage={sendMessage} isLoading={isLoading} messages={messages} />
           </div>
         </motion.div>
       </div>
